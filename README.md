@@ -1,7 +1,7 @@
 # PWP SPRING 2021
 # PROJECT NAME
 # Group information
-* Student 1. Name and email
+* Student 1. Can Ali Yarman cyarman21@student.oulu.fi
 * Student 2. Name and email
 * Student 3. Name and email
 
