@@ -8,6 +8,7 @@ import boto3
 import json
 from flask import Flask, flash, request, redirect, url_for, render_template, send_from_directory, send_file, jsonify, g, abort
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 #download, thumbnail, delete, select, sqlite, google vision ai, list images
 
@@ -79,8 +80,10 @@ def create_user():
     cur.execute(query)
     con.commit()
     path = './userdirs/' + name
+    thumbnail_path = './thumbnails/' + name
     if not os.path.exists(path):
         os.makedirs(path)
+        os.makedirs(thumbnail_path)
     return 'Created user'
 
 @app.route('/uploads/<name>')
@@ -144,6 +147,10 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join('userdirs/' + name + '/', filename))
+            image = Image.open('userdirs/' + name + '/' + filename)
+            image.thumbnail((400,400))
+            image.save('thumbnails/' + name + '/' + filename, optimize=True, quality=40)
+            upload_s3('thumbnails/' + name + '/' + filename, 'thumbnails/' + name, filename)
             upload_s3('userdirs/' + name + '/' + filename, name, filename)
             post_query = 'INSERT INTO POSTS(NAME, USER_NAME, POST_TAG, S3_KEY) VALUES("'  + filename + '", "' + name + '", "' + str(post_topic) + '", "' + name + '/' + filename + '")'
             cur.execute(post_query)
