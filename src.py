@@ -132,12 +132,16 @@ def download_key():
     if contents == []:
         abort(401)
     else:
-        BUCKET = creds['s3_creds'][0]["BUCKET"]
-        ACCESS_KEY = creds['s3_creds'][0]["ACCESS_KEY"]
-        SECRET_KEY = creds['s3_creds'][0]["SECRET_KEY"]
-        s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,aws_secret_access_key=SECRET_KEY)
-        with open('downloads/' + key.split('/')[1], 'wb') as f:
-            s3.download_fileobj(BUCKET, key, f)
+        try:
+            BUCKET = creds['s3_creds'][0]["BUCKET"]
+            ACCESS_KEY = creds['s3_creds'][0]["ACCESS_KEY"]
+            SECRET_KEY = creds['s3_creds'][0]["SECRET_KEY"]
+            s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,aws_secret_access_key=SECRET_KEY)
+            with open('downloads/' + key.split('/')[1], 'wb') as f:
+                s3.download_fileobj(BUCKET, key, f)
+        except:
+            return 'No such object'
+
     return 'Object ' + key + ' downloaded.'
 
 
