@@ -92,8 +92,8 @@ def download_file(name):
 
 
 # Downloads all posts belonging to user, returns s3 elements of the user. Will add topic filtering in the future
-@app.route('/list_posts', methods=['GET'])
-def list_posts():
+@app.route('/download_posts', methods=['GET'])
+def download_posts():
     name = request.args.get('name', type=str)
     password = request.args.get('password', type=str)
     post_topic = request.args.get('topic', type=str)
@@ -112,6 +112,57 @@ def list_posts():
                 s3.download_fileobj(BUCKET, key, f)
                 posts.append(c)
     return jsonify(posts)
+
+@app.route('/download_key', methods=['GET'])
+def download_key():
+    name = request.args.get('name', type=str)
+    password = request.args.get('password', type=str)
+    key = request.args.get('key', type=str)
+    con = get_db()
+    cur = get_db().cursor()
+    auth_query = 'SELECT * FROM USERS WHERE NAME="' + name + '";'
+
+    res = auth_check(auth_query, password)
+    if res != 1:
+        abort(401)
+    
+    post_check_query = 'SELECT * FROM POSTS WHERE USER_NAME="' + name  + '";'
+    contents = cur.execute(post_check_query)
+    con.commit()
+    if contents == []:
+        abort(401)
+    else:
+        BUCKET = creds['s3_creds'][0]["BUCKET"]
+        ACCESS_KEY = creds['s3_creds'][0]["ACCESS_KEY"]
+        SECRET_KEY = creds['s3_creds'][0]["SECRET_KEY"]
+        s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,aws_secret_access_key=SECRET_KEY)
+        with open('downloads/' + key.split('/')[1], 'wb') as f:
+            s3.download_fileobj(BUCKET, key, f)
+    return 'Object ' + key + ' downloaded.'
+
+
+@app.route('/list_posts', methods=['GET'])
+def list_posts():
+    name = request.args.get('name', type=str)
+    password = request.args.get('password', type=str)
+    post_topic = request.args.get('topic', type=str)
+    con = get_db()
+    cur = get_db().cursor()
+    auth_query = 'SELECT * FROM USERS WHERE NAME="' + name + '";'
+
+    res = auth_check(auth_query, password)
+    if res != 1:
+        abort(401)
+        
+    post_query = 'SELECT * FROM POSTS WHERE USER_NAME="' + name  + '";'
+    posts = []
+    contents = cur.execute(post_query)
+    con.commit()
+    for c in contents:
+        posts.append(c)
+        print(c)
+    return jsonify(posts)
+
 
 
 # Upload image to s3 and insert post to posts table
