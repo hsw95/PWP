@@ -1,0 +1,5 @@
+userdirs/
+__pycache__/
+creds.json
+downloads/
+pic_gallery.db
